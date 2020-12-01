@@ -120,10 +120,14 @@
 	const char *
 	battery_status2d(const char *bat)
 	{
-		int perc, charg;
+		int *perc, *charg;
 		
 		perc  = ccToInt(battery_perc(bat));
 		charg = ccToInt(battery_state("AC0"));
+
+		if (perc == NULL || charg == NULL) {
+			return NULL;
+		}
 
 		int nx, bx, rx;
 		int y, ny, fy;
@@ -145,13 +149,25 @@
 
 		rx = bx + 2;
 		fy = y + 2;
-		rw = (bw - 6) * (100-perc) / 100;
+		rw = (bw - 6) * (100-*perc) / 100;
 		rh = h - 4;
+
+		char board_color[7], fill_color[7];
+		intToHexColor(DEFAULT_FG, board_color);
+		intToHexColor(GREEN, fill_color);
+
+		char nose[MAX_BAR_LEN], body[MAX_BAR_LEN], fill[MAX_BAR_LEN], all[MAX_BAR_LEN * 3];
+		printBar(nose,
+				nx, ny, nw, nh, 0, 0, board_color);
+		printBar(body,
+				bx,  y, bw,  h, 0, 0, board_color);
+		printBar(fill,
+				rx, fy, rw, rh, barlen, 0, fill_color);
+
+		snprintf(all, sizeof(all),
+				"%s%s%s", nose, body, fill);
 				
-		return bprintf("^c#%s^^r%d,%d,%d,%d^^d^^c#%s^^r%d,%d,%d,%d^^d^^c#%s^^r%d,%d,%d,%d^^d^^f%d^",
-				"e8f6f7", nx, ny, nw, nh, 
-				"e8f6f7", bx,  y, bw,  h,
-				((charg > 0) ? "00ff00" : "222222"), rx, fy, rw, rh, barlen);
+		return bprintf("%s", all);
 	}
 #elif defined(__OpenBSD__)
 	#include <fcntl.h>

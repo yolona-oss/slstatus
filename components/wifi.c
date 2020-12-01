@@ -131,80 +131,58 @@
 	const char *
 	wifi_status2d(const char *interface)
 	{
-		int cur, perc;
-		size_t i;
-		char *p, *datastart;
-		char path[PATH_MAX];
-		char status[5];
-		FILE *fp;
+		int *perc;
+		perc = NULL;
 
-		if (esnprintf(path, sizeof(path), "/sys/class/net/%s/operstate",
-		              interface) < 0) {
-			return NULL;
-		}
-		if (!(fp = fopen(path, "r"))) {
-			warn("fopen '%s':", path);
-			return NULL;
-		}
-		p = fgets(status, 5, fp);
-		fclose(fp);
-		if (!p || strcmp(status, "up\n") != 0) {
+		if ((perc = ccToInt(wifi_perc(interface))) == NULL) {
 			goto drawDicon;
 		}
 
-		if (!(fp = fopen("/proc/net/wireless", "r"))) {
-			warn("fopen '/proc/net/wireless':");
-			return NULL;
-		}
-
-		for (i = 0; i < 3; i++) {
-			if (!(p = fgets(buf, sizeof(buf) - 1, fp)))
-				break;
-		}
-		fclose(fp);
-		if (i < 2 || !p) {
-			return NULL;
-		}
-
-		if (!(datastart = strstr(buf, interface))) {
-			return NULL;
-		}
-
-		datastart = (datastart+(strlen(interface)+1));
-		sscanf(datastart + 1, " %*d   %d  %*d  %*d\t\t  %*d\t   "
-		       "%*d\t\t%*d\t\t %*d\t  %*d\t\t %*d", &cur);
-
-		/* 70 is the max of /proc/net/wireless */
-		/* return bprintf("%d", (int)((float)cur / 70 * 100)); */
-		perc = (int)(cur * 100 / 70);
-
 		int offset, x, y, w, barh, lh, mh, hh;
-		x = 2;
-		y = 2;
-		w = 4;
-		lh = 6;
-		mh = lh + 4;
-		hh = mh + 4;
-		barh = 16;
+		x  = INDENT_WIDTH;
+		w  = 3;
+		lh = CENTRED / 3;
+		y  = MAX_HEIGHT - INDENT_HEIGHT;
+		mh = lh * 2;
+		hh = lh * 3;
+		barh = CENTRED;
 		offset = 2 + w;
 
-		if (perc > 35) {
-				return bprintf("^r%d,%d,%d,%d^^f%d^^r%d,%d,%d,%d^^f%d^^r%d,%d,%d,%d^^f%d^^d^",
-								x, barh-lh, w, lh, offset,
-								x, barh-mh, w, mh, offset,
-								x, barh-hh, w, hh, offset);
-		} else if (perc <= 35 && perc > 17.5) {
-				return bprintf("^r%d,%d,%d,%d^^f%d^^r%d,%d,%d,%d^^f%d^^d^",
-								x, y, w, lh, offset,
-								x, y, w, mh, offset);
-		} else if (perc <= 17.5) {
-				return bprintf("^r%d,%d,%d,%d^^f%d^^d^",
-								x, y, w, lh, offset);
+		char low[MAX_BAR_LEN], med[MAX_BAR_LEN], hig[MAX_BAR_LEN], all[MAX_BAR_LEN * 3];
+		low[0] = med[0] = hig[0] = '\0';
+		char fg[7];
+		intToHexColor(DEFAULT_FG, fg);
+
+		int val;
+		if (*perc > 75) {
+			val = hh * *perc / 100;
+			printBar(low,
+					x, y-lh, w, lh, offset, lh, fg);
+			printBar(med,
+					x, y-mh, w, mh, offset, mh, fg);
+			printBar(hig,
+					x, y-val, w, val, offset, hh, fg);
+		} else if (*perc <= 75 && *perc > 25) {
+			val = mh * *perc / (75-25);
+			printBar(low,
+					x, y-lh, w, lh, offset, lh, fg);
+			printBar(med,
+					x, y-val, w, val, offset, mh, fg);
+
+		} else if (*perc <= 25) {
+			val = lh * *perc / 25;
+			printBar(low,
+					x, y-val, w, val, offset, lh, fg);
 		} else {
-				return NULL;
+			return NULL;
 		}
+
+			snprintf(all, sizeof(all),
+					"%s%s%s", low, med, hig);
+
+			return bprintf("%s", all);
 drawDicon:
-			return bprintf("^c#FF0000^No conn^d^");
+			return bprintf("[^c#FF0000^D^d^]");
 	}
 #elif defined(__OpenBSD__)
 	#include <net/if.h>

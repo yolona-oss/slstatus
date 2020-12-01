@@ -52,19 +52,20 @@
 	const char *
 	cpu_char(void)
 	{	
-		int perc;
-		char aperc[4];
-
-		snprintf(aperc, sizeof(aperc),
-			   	"%s", cpu_perc());
-		sscanf(aperc, "%d", &perc);
+		int *perc;
+		perc = NULL;
+		
+		perc = ccToInt(cpu_perc());
+		if (perc == NULL) {
+			return NULL;
+		}
 
 		char *ret = NULL;
-		if (perc < 50) {
+		if (*perc < 50) {
 			ret = "low";
-		} else if (perc >= 50 && perc < 80) {
+		} else if (*perc >= 50 && *perc < 80) {
 			ret = "med";
-		} else if (perc >= 80) {
+		} else if (*perc >= 80) {
 			ret = "high";
 		}
 
@@ -74,21 +75,35 @@
 	const char *
 	cpu_status2d(void)
 	{
-		int perc;
+		int *perc;
 		int crit_temp, cur_temp, hitemp;
+		/* int cur_fan, max_fan; */
 
-		perc = ccToInt(cpu_perc());
+		if((perc = ccToInt(cpu_perc())) == NULL) {
+			return NULL;
+		}
 
-		if (pscanf("/sys/class/hwmon/hwmon5/temp1_input", "%d", &cur_temp) != 1) {
+		/* getting cpu temperature */
+		/* /sys/class/hwmon/hwmon5/temp1_input */
+		if (pscanf("/sys/devices/platform/asus-nb-wmi/hwmon/hwmon3/temp1_input", "%d", &cur_temp) != 1) {
 			return NULL;
 		}
 		if (pscanf("/sys/class/hwmon/hwmon4/temp2_crit", "%d", &crit_temp) != 1) {
 			return NULL;
 		}
+
+		/* fan rpm */
+		/*********************************/
+		/* if (pscanf("/sys/devices/platform/asus_fan/hwmon/hwmon7/fan1_input", "%d", &cur_fan) != 1) { */
+		/* 	return NULL; */
+		/* } */
+
+		/* max_fan = 3910; */
+		/*********************************/
+
 		/* cur_temp  = ccToInt(temp("/sys/class/hwmon/hwmon5/temp1_input")); */
 		/* crit_temp = ccToInt(temp("/sys/class/hwmon/hwmon4/temp2_crit")); */
-
-		cur_temp  /= 1000;
+		cur_temp  /= 100000;
 		crit_temp /= 1000;
 		hitemp     = crit_temp - 20;
 		
@@ -100,22 +115,24 @@
 		y = INDENT_HEIGHT;
 		th = 2;
 		ch = CENTRED - th;
-		cw = barlen * perc / 100;
+		cw = barlen * *perc / 100;
 		tw = barlen * cur_temp / crit_temp;
 
-		/* from green to yellow to orange to red */
-		int color = (int)((cur_temp > hitemp) ?
-						( ( (RED|GREEN) - ( (cur_temp-hitemp) * (GREEN/(crit_temp-hitemp)) ) ) & ~BLUE & COLOR_MASK ) :
-						( ( GREEN + ( cur_temp * (RED/hitemp) ) & ~BLUE & COLOR_MASK )));
+		int grad_color = greenToRed(cur_temp, hitemp, crit_temp);
 
-		/* const char *cpucol  = intToHexColor(DEFAULT_FG); */
-		const char *cpucol  = "e8f6f7";
-		const char *tempcol = intToHexColor(color);
+		char cpucol[7], tempcol[7];
+		intToHexColor(DEFAULT_FG, cpucol);
+		intToHexColor(grad_color, tempcol);
 
-		return bprintf("%s", printDoubleBar(x, y, cw, ch,
-										    x, ch+y, tw, th,
-										    barlen,
-											cpucol, tempcol));
+		char cpu[MAX_BAR_LEN * 2];
+		printDoubleBar(cpu,
+						x, y, cw, ch,
+						x, ch+y, tw, th,
+						barlen,
+						cpucol,
+						tempcol);
+
+		return bprintf("%s", cpu);
 	}
 
 #elif defined(__OpenBSD__)

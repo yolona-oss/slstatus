@@ -132,25 +132,20 @@
 	const char *
 	ram_status2d(void)
 	{
-		uintmax_t total, free, buffers, cached;
+		/* uintmax_t total, free, buffers, cached; */
 		uintmax_t stotal, sfree, scached;
-		uintmax_t ram, swap;
+		int *ram, swap;
 
-		if (pscanf("/proc/meminfo",
-		           "MemTotal: %ju kB\n"
-		           "MemFree: %ju kB\n"
-		           "MemAvailable: %ju kB\n"
-		           "Buffers: %ju kB\n"
-		           "Cached: %ju kB\n",
-		           &total, &free, &buffers, &buffers, &cached) != 5) {
+		/* getting swap usage info */
+		if (get_swap_info(&stotal, &sfree, &scached)) {
 			return NULL;
 		}
-		ram = (100 * (total - free - buffers - cached) / total);
-
-		if (get_swap_info(&stotal, &sfree, &scached) || total == 0) {
-				return NULL;
-		}
 		swap = (uintmax_t)(100 * (stotal - sfree - scached) / stotal);
+
+		/* getting ram usage info */
+		if ((ram = ccToInt(ram_perc())) == NULL) {
+			return NULL;
+		}
 
 		int barlen;
 		int x, y, rw, sw, rh, sh;
@@ -160,17 +155,21 @@
 		y = INDENT_HEIGHT;
 		sh = 2;
 		rh = CENTRED - sh;
-		rw = barlen * ram / 100;
+		rw = barlen * *ram / 100;
 		sw = barlen * swap / 100;
 
-		/* ramcol  = intToHexColor(10); */
-		const char *ramcol  = "e8f6f7";
-		const char *swapcol = intToHexColor(5623292);
+		char ramcol[7], swapcol[7];
+		intToHexColor(DEFAULT_FG, ramcol);
+		intToHexColor(5623292, swapcol);
 
-		return printDoubleBar(x, y, rw, rh,
-						      x, rh+y, sw, sh,
-							  barlen,
-							  ramcol, swapcol);
+		char mem[MAX_BAR_LEN * 2];
+		printDoubleBar(mem,
+				x, y, rw, rh,
+				x, rh+y, sw, sh,
+				barlen,
+				ramcol, swapcol);
+
+		return bprintf("%s", mem);
 	}
 #elif defined(__OpenBSD__)
 	#include <stdlib.h>

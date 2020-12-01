@@ -146,64 +146,76 @@ pscanf(const char *path, const char *fmt, ...)
 }
 
 /* status2d */
-int
+int *
 ccToInt(const char* ch)
 {
-	char swap[10];
-	int ret;
-
-	snprintf(swap, sizeof(swap),
-		   	"%s", ch);
-	sscanf(swap, "%d",
-		   	&ret);
-
-	return ret;
-}
-
-const char *
-intToHexColor(int num)
-{
-	if (bprintf("%6x", num) == NULL) {
+	if (ch == NULL) {
 		return NULL;
 	}
+	char swap[100];
+	int *num = NULL;
+	num = (int *)malloc(sizeof(int *));
 
+	if (snprintf(swap, sizeof(swap),
+		   	"%s", ch) == 0) {
+		return NULL;
+	}
+	sscanf(swap, "%d",
+		   	num);
+
+	return num;
+}
+
+void
+intToHexColor(int num, char *color)
+{
+	snprintf(color, 7,
+			"%6x", num);
 	for (int i = 0; i < 7; i++) {
-		if (buf[i] == ' ') {
-			buf[i] = '0';
+		if (color[i] == ' ') {
+			color[i] = '0';
 		}
 	}
-
-	return buf;
 }
 
-const char *
-printBar(int x, int y, int w, int h, int barlen, const char* color)
+int
+greenToRed(int current, int sep, int max)
 {
-	static char ret[100];
-	
-	snprintf(ret, sizeof(ret),
-				"^c#%s^^r%d,%d,%d,%d^^d^^f%d^",
-				color,
-				x, y, w ,h,
-				barlen);
+	int color = (int)((current > sep) ?
+					( ( (RED|GREEN) - ( (current-sep) * (GREEN/(max-sep)) )) & ~BLUE & COLOR_MASK ) :
+					( ( GREEN + (( current * (RED/sep) ) & ~BLUE & COLOR_MASK) )));
 
-	return ret;
+	return color;
 }
 
-const char *
-printDoubleBar(int x, int y, int w, int h, int sx, int sy, int sw, int sh, int barlen, const char *fir_color, const char *sec_color)
+void
+printBar(char *bar, int x, int y, int w, int h, int barlen, int backlen, const char* color)
 {
-	static char ret[100];
-	if (snprintf(ret, sizeof(ret),
-			"^c#%s^^r%d,%d,%d,%d^^d^^c#%s^^r%d,%d,%d,%d^^f%d^^d^",
-			fir_color,
-			x, y, w, h,
-			sec_color,
-			sx, sy, sw, sh,
-			barlen) < 50) {
-		return NULL;
+	char backColor[7];
+	intToHexColor(DEFAULT_BG, backColor);
+
+	if(sprintf(bar,
+			"^c#%6s^^r%d,%d,%d,%d^^c#%s^^r%d,%d,%d,%d^^d^^f%d^",
+			backColor,
+			x, y, backlen, h,
+			color,
+			x, y, w ,h,
+			barlen) < 48) {
+		bar = NULL;
 	}
+}
 
-	return ret;
-
+void
+printDoubleBar(char *dbar, int x, int y, int w, int h, int sx, int sy, int sw, int sh, int barlen, const char *fir_color, const char *sec_color)
+{
+	char f[100], s[100];
+	printBar(f,
+			x, y, w, h,
+			0, barlen, fir_color);
+	printBar(s,
+			sx, sy, sw, sh,
+			barlen, barlen, sec_color);
+	
+	sprintf(dbar,
+			"%s%s", f, s);
 }
