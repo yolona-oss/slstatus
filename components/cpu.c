@@ -85,12 +85,14 @@
 
 		/* getting cpu temperature */
 		/* /sys/class/hwmon/hwmon5/temp1_input */
-		if (pscanf("/sys/devices/platform/asus-nb-wmi/hwmon/hwmon3/temp1_input", "%d", &cur_temp) != 1) {
+		if (pscanf("/sys/devices/platform/asus-nb-wmi/hwmon/hwmon4/temp1_input", "%d", &cur_temp) != 1) {
 			return NULL;
 		}
-		if (pscanf("/sys/class/hwmon/hwmon4/temp2_crit", "%d", &crit_temp) != 1) {
+		if (pscanf("/sys/class/hwmon/hwmon5/temp2_crit", "%d", &crit_temp) != 1) {
 			return NULL;
 		}
+		/* cur_temp  = ccToInt(temp("/sys/class/hwmon/hwmon5/temp1_input")); */
+		/* crit_temp = ccToInt(temp("/sys/class/hwmon/hwmon4/temp2_crit")); */
 
 		/* fan rpm */
 		/*********************************/
@@ -101,8 +103,6 @@
 		/* max_fan = 3910; */
 		/*********************************/
 
-		/* cur_temp  = ccToInt(temp("/sys/class/hwmon/hwmon5/temp1_input")); */
-		/* crit_temp = ccToInt(temp("/sys/class/hwmon/hwmon4/temp2_crit")); */
 		cur_temp  /= 100000;
 		crit_temp /= 1000;
 		hitemp     = crit_temp - 20;
@@ -118,10 +118,10 @@
 		cw = barlen * *perc / 100;
 		tw = barlen * cur_temp / crit_temp;
 
-		int grad_color = greenToRed(cur_temp, hitemp, crit_temp);
+		char cpucol[7]  = DEFAULT_FG_C; // intToHexColor(DEFAULT_FG, cpucol);
+	   	char tempcol[7];
 
-		char cpucol[7], tempcol[7];
-		intToHexColor(DEFAULT_FG, cpucol);
+		int grad_color = greenToRed(cur_temp, hitemp, crit_temp);
 		intToHexColor(grad_color, tempcol);
 
 		char cpu[MAX_BAR_LEN * 2];
@@ -129,8 +129,7 @@
 						x, y, cw, ch,
 						x, ch+y, tw, th,
 						barlen,
-						cpucol,
-						tempcol);
+						cpucol, tempcol, DEFAULT_BG_C);
 
 		return bprintf("%s", cpu);
 	}

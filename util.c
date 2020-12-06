@@ -156,7 +156,7 @@ ccToInt(const char* ch)
 	int *num = NULL;
 	num = (int *)malloc(sizeof(int *));
 
-	if (snprintf(swap, sizeof(swap),
+	if (sprintf(swap,
 		   	"%s", ch) == 0) {
 		return NULL;
 	}
@@ -189,16 +189,13 @@ greenToRed(int current, int sep, int max)
 }
 
 void
-printBar(char *bar, int x, int y, int w, int h, int barlen, int backlen, const char* color)
+printBar(char *bar, int x, int y, int w, int h, int barlen, int backlen, const char* fg_color, const char* bg_color)
 {
-	char backColor[7];
-	intToHexColor(DEFAULT_BG, backColor);
-
 	if(sprintf(bar,
 			"^c#%6s^^r%d,%d,%d,%d^^c#%s^^r%d,%d,%d,%d^^d^^f%d^",
-			backColor,
+			bg_color,
 			x, y, backlen, h,
-			color,
+			fg_color,
 			x, y, w ,h,
 			barlen) < 48) {
 		bar = NULL;
@@ -206,15 +203,15 @@ printBar(char *bar, int x, int y, int w, int h, int barlen, int backlen, const c
 }
 
 void
-printDoubleBar(char *dbar, int x, int y, int w, int h, int sx, int sy, int sw, int sh, int barlen, const char *fir_color, const char *sec_color)
+printDoubleBar(char *dbar, int x, int y, int w, int h, int sx, int sy, int sw, int sh, int barlen, const char *fir_color, const char *sec_color, const char* bg_color)
 {
 	char f[100], s[100];
 	printBar(f,
 			x, y, w, h,
-			0, barlen, fir_color);
+			0, barlen, fir_color, bg_color);
 	printBar(s,
 			sx, sy, sw, sh,
-			barlen, barlen, sec_color);
+			barlen, barlen, sec_color, bg_color);
 	
 	sprintf(dbar,
 			"%s%s", f, s);

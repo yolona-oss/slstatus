@@ -148,41 +148,37 @@
 		barh = CENTRED;
 		offset = 2 + w;
 
+		char fg[7] = DEFAULT_FG_C; // intToHexColor(DEFAULT_FG, fg);
+
 		char low[MAX_BAR_LEN], med[MAX_BAR_LEN], hig[MAX_BAR_LEN], all[MAX_BAR_LEN * 3];
 		low[0] = med[0] = hig[0] = '\0';
-		char fg[7];
-		intToHexColor(DEFAULT_FG, fg);
 
-		int val;
 		if (*perc > 75) {
-			val = hh * *perc / 100;
 			printBar(low,
-					x, y-lh, w, lh, offset, lh, fg);
+					x, y-lh, w, lh, offset, lh, fg, DEFAULT_BG_C);
 			printBar(med,
-					x, y-mh, w, mh, offset, mh, fg);
+					x, y-mh, w, mh, offset, mh, fg, DEFAULT_BG_C);
 			printBar(hig,
-					x, y-val, w, val, offset, hh, fg);
+					x, y-hh, w, hh, offset, hh, fg, DEFAULT_BG_C);
 		} else if (*perc <= 75 && *perc > 25) {
-			val = mh * *perc / (75-25);
 			printBar(low,
-					x, y-lh, w, lh, offset, lh, fg);
+					x, y-lh, w, lh, offset, lh, fg, DEFAULT_BG_C);
 			printBar(med,
-					x, y-val, w, val, offset, mh, fg);
+					x, y-mh, w, mh, offset*2, mh, fg, DEFAULT_BG_C);
 
 		} else if (*perc <= 25) {
-			val = lh * *perc / 25;
 			printBar(low,
-					x, y-val, w, val, offset, lh, fg);
+					x, y-lh, w, lh, offset*3, lh, fg, DEFAULT_BG_C);
 		} else {
 			return NULL;
 		}
 
-			snprintf(all, sizeof(all),
-					"%s%s%s", low, med, hig);
+		snprintf(all, sizeof(all),
+				"%s%s%s", low, med, hig);
 
-			return bprintf("%s", all);
+		return bprintf("%s", all);
 drawDicon:
-			return bprintf("[^c#FF0000^D^d^]");
+		return bprintf("^c#FF0000^D^d^");
 	}
 #elif defined(__OpenBSD__)
 	#include <net/if.h>

@@ -44,20 +44,20 @@
 	}
 
 	const char *
-	battery_state(const char *bat)
+	battery_state(const char *ac)
 	{
 		static struct {
 			char *state;
 			char *symbol;
 		} map[] = {
 			{ "1",	"1" }, // 
-			{ "0",	"0" }, // 
+			{ "0",	"-1" }, // 
 		};
 		size_t i;
-		char path[PATH_MAX], state[1];
+		char path[PATH_MAX], state[3];
 
 		if (esnprintf(path, sizeof(path),
-		              "/sys/class/power_supply/%s/online", bat) < 0) {
+		              "/sys/class/power_supply/%s/online", ac) < 0) {
 			return NULL;
 		}
 		if (pscanf(path, "%1s", state) != 1) {
@@ -120,50 +120,68 @@
 	const char *
 	battery_status2d(const char *bat)
 	{
-		int *perc, *charg;
+		int *perc, *charging;
 		
-		perc  = ccToInt(battery_perc(bat));
-		charg = ccToInt(battery_state("AC0"));
+		perc     = ccToInt(battery_perc(bat));
+		charging = ccToInt(battery_state("AC0"));
 
-		if (perc == NULL || charg == NULL) {
+		if (perc == NULL || charging == NULL) {
 			return NULL;
 		}
 
-		int nx, bx, rx;
-		int y, ny, fy;
-		int nw, bw, rw;
-		int h, nh, rh;
+		int nx, bx, cdx;
+		int y, ny, cdy;
+		int nw, bw, cw, dw;
+		int h, nh, dh;
 		int barlen;
 
-		barlen = 30;
+		barlen = DEFAULT_BAR_WIDTH * 0.7;
 
+		/* nose section */
 		nx = INDENT_WIDTH;
 		nh = CENTRED/2;
 		ny = INDENT_HEIGHT + CENTRED/2 - nh/2;
 		nw = (int)(barlen * 0.08);
 
+		/* body section */
 		bx = nw + nx;
 		y  = INDENT_HEIGHT;
 		bw = barlen - nw;
 		h  = CENTRED;
 
-		rx = bx + 2;
-		fy = y + 2;
-		rw = (bw - 6) * (100-*perc) / 100;
-		rh = h - 4;
+		/* fill section */
+		cdy = y + 1;
+		cdx = bx + 1;
+		dh = h - 2;
+		/* charge */
+		cw = bw - 4;
+		/* discagre */
+		dw = (bw - 4) * (100-*perc) / 100;
 
-		char board_color[7], fill_color[7];
-		intToHexColor(DEFAULT_FG, board_color);
-		intToHexColor(GREEN, fill_color);
+		char charge_color[7];
+		char board_color[7]     = DEFAULT_FG_C; /* intToHexColor(DEFAULT_FG, board_color); */
+		char discharge_color[7] = DEFAULT_BG_C; /* intToHexColor(DEFAULT_BG, discharge_color); */
+
+		if (*charging > 0) {
+			intToHexColor(DEFAULT_FG, charge_color);
+		} else {
+			intToHexColor(greenToRed((100 - *perc), 60, 100), charge_color);
+		}
 
 		char nose[MAX_BAR_LEN], body[MAX_BAR_LEN], fill[MAX_BAR_LEN], all[MAX_BAR_LEN * 3];
-		printBar(nose,
-				nx, ny, nw, nh, 0, 0, board_color);
-		printBar(body,
-				bx,  y, bw,  h, 0, 0, board_color);
-		printBar(fill,
-				rx, fy, rw, rh, barlen, 0, fill_color);
 
+		printBar(nose,
+				nx, ny, nw, nh,
+				0, 0,
+				board_color, DEFAULT_BG_C);
+		printBar(body,
+				bx,  y, bw,  h,
+				0, 0,
+				board_color, DEFAULT_BG_C);
+		printBar(fill,
+				cdx, cdy, dw, dh,
+				barlen, cw,
+				discharge_color, charge_color);
 		snprintf(all, sizeof(all),
 				"%s%s%s", nose, body, fill);
 				

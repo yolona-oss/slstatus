@@ -158,16 +158,15 @@
 		rw = barlen * *ram / 100;
 		sw = barlen * swap / 100;
 
-		char ramcol[7], swapcol[7];
-		intToHexColor(DEFAULT_FG, ramcol);
-		intToHexColor(5623292, swapcol);
+		char ramcol[7]  = DEFAULT_FG_C; // intToHexColor(DEFAULT_FG, ramcol);
+		char swapcol[7] = "55CDFC";     // intToHexColor(5623292, swapcol);
 
 		char mem[MAX_BAR_LEN * 2];
 		printDoubleBar(mem,
 				x, y, rw, rh,
 				x, rh+y, sw, sh,
 				barlen,
-				ramcol, swapcol);
+				ramcol, swapcol, DEFAULT_BG_C);
 
 		return bprintf("%s", mem);
 	}
