@@ -1,13 +1,15 @@
 /* See LICENSE file for copyright and license details. */
 
 /* interval between updates (in ms) */
-const unsigned int interval = 700;
+const unsigned int interval = 500;
 
 /* text to show if no value can be retrieved */
 static const char unknown_str[] = "n/a";
 
 /* maximum output string length */
 #define MAXLEN 2048
+
+	/* "/sys/class/hwmon/hwmon1/temp2_input", "/sys/class/hwmon/hwmon1/temp2_max" }; */
 
 /*
  * function            description                     argument (example)
@@ -66,10 +68,10 @@ static const char unknown_str[] = "n/a";
  *  */  
 static const struct arg args[] = {
 	/* function	format          argument */
-	{ cpu_status2d, 	"  %s / ",	NULL },
+	{ cpu_status2d, 	"  %s / ",	"/sys/class/hwmon/hwmon1/temp2" },
 	{ ram_status2d,		"  %s / ",	NULL },
-	{ wifi_status2d,	" %3s  / ",	"wlan0" },
+	/* { wifi_status2d,	" %3s  / ",	"wlan0" }, */
 	{ keymap,			" %s ",	NULL },
-	{ battery_status2d,	" %s ",		"BAT0" },
+	/* { battery_status2d,	" %s ",		"BAT0" }, */
 	{ datetime,			"  %s ",	"%H:%M" },
 };

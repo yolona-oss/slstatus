@@ -8,11 +8,11 @@
 
 #define COLOR_MASK    RED+GREEN+BLUE
 
-#define DEFAULT_BG    2236962   //#222222
+#define DEFAULT_BG    2236962
 #define DEFAULT_BG_C  "222222"
-#define DEFAULT_FG    15267575  //#e8f6f7
+#define DEFAULT_FG    15267575
 #define DEFAULT_FG_C  "e8f6f7"
-#define DEFAULT_BBG   12369084  //#bcbcbc
+#define DEFAULT_BBG   12369084
 #define DEFAULT_BBG_C "bcbcbc"
 #define SPEC_COLOR    9076891
 #define SPEC_COLOR_C  "8a809b"

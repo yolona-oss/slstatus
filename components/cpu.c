@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <linux/limits.h>
 
 #include "../util.h"
 
@@ -73,39 +74,31 @@
 	}
 
 	const char *
-	cpu_status2d(void)
+	cpu_status2d(const char *path)
 	{
+		char tpath[PATH_MAX];
 		int *perc;
 		int crit_temp, cur_temp, hitemp;
-		/* int cur_fan, max_fan; */
 
 		if((perc = ccToInt(cpu_perc())) == NULL) {
 			return NULL;
 		}
 
 		/* getting cpu temperature */
-		/* /sys/class/hwmon/hwmon5/temp1_input */
-		if (pscanf("/sys/devices/platform/asus-nb-wmi/hwmon/hwmon4/temp1_input", "%d", &cur_temp) != 1) {
+		esnprintf(tpath, sizeof(tpath),
+				"%s_input", path);
+		if (pscanf(tpath, "%d", &cur_temp) != 1) {
 			return NULL;
 		}
-		if (pscanf("/sys/class/hwmon/hwmon5/temp2_crit", "%d", &crit_temp) != 1) {
+		esnprintf(tpath, sizeof(tpath),
+				"%s_max", path);
+		if (pscanf(tpath, "%d", &crit_temp) != 1) {
 			return NULL;
 		}
-		/* cur_temp  = ccToInt(temp("/sys/class/hwmon/hwmon5/temp1_input")); */
-		/* crit_temp = ccToInt(temp("/sys/class/hwmon/hwmon4/temp2_crit")); */
 
-		/* fan rpm */
-		/*********************************/
-		/* if (pscanf("/sys/devices/platform/asus_fan/hwmon/hwmon7/fan1_input", "%d", &cur_fan) != 1) { */
-		/* 	return NULL; */
-		/* } */
-
-		/* max_fan = 3910; */
-		/*********************************/
-
-		cur_temp  /= 100000;
+		cur_temp  /= 1000;
 		crit_temp /= 1000;
-		hitemp     = crit_temp - 20;
+		hitemp     = crit_temp - 10;
 		
 		int barlen;
 		int x, y, cw, tw, ch, th;
@@ -113,12 +106,12 @@
 		barlen = DEFAULT_BAR_WIDTH;
 		x = INDENT_WIDTH;
 		y = INDENT_HEIGHT;
-		th = 2;
+		th = CENTRED / 4;
 		ch = CENTRED - th;
 		cw = barlen * *perc / 100;
 		tw = barlen * cur_temp / crit_temp;
 
-		char cpucol[7]  = DEFAULT_FG_C; // intToHexColor(DEFAULT_FG, cpucol);
+		char cpucol[7] = DEFAULT_FG_C;
 	   	char tempcol[7];
 
 		int grad_color = greenToRed(cur_temp, hitemp, crit_temp);

@@ -10,7 +10,7 @@ const char *battery_status2d(const char *);
 const char *cpu_freq(void);
 const char *cpu_perc(void);
 const char *cpu_char(void);
-const char *cpu_status2d(void);
+const char *cpu_status2d(const char *file);
 
 /* datetime */
 const char *datetime(const char *fmt);

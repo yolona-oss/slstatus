@@ -136,37 +136,27 @@
 		uintmax_t stotal, sfree, scached;
 		int *ram, swap;
 
-		/* getting swap usage info */
-		if (get_swap_info(&stotal, &sfree, &scached)) {
-			return NULL;
-		}
-		swap = (uintmax_t)(100 * (stotal - sfree - scached) / stotal);
-
 		/* getting ram usage info */
 		if ((ram = ccToInt(ram_perc())) == NULL) {
 			return NULL;
 		}
 
 		int barlen;
-		int x, y, rw, sw, rh, sh;
+		int x, y, w, h;
 
 		barlen = DEFAULT_BAR_WIDTH;
 		x = INDENT_WIDTH;
 		y = INDENT_HEIGHT;
-		sh = 2;
-		rh = CENTRED - sh;
-		rw = barlen * *ram / 100;
-		sw = barlen * swap / 100;
+		h = CENTRED;
+		w = barlen * *ram / 100;
 
-		char ramcol[7]  = DEFAULT_FG_C; // intToHexColor(DEFAULT_FG, ramcol);
-		char swapcol[7] = "55CDFC";     // intToHexColor(5623292, swapcol);
+		char ramcol[7]  = DEFAULT_FG_C;
 
 		char mem[MAX_BAR_LEN * 2];
-		printDoubleBar(mem,
-				x, y, rw, rh,
-				x, rh+y, sw, sh,
-				barlen,
-				ramcol, swapcol, DEFAULT_BG_C);
+		printBar(mem,
+				x, y, w, h,
+				barlen, DEFAULT_BAR_WIDTH,
+				ramcol, DEFAULT_BG_C);
 
 		return bprintf("%s", mem);
 	}
