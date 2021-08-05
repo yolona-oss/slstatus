@@ -182,15 +182,34 @@ intToHexColor(int num, char *color)
 	}
 }
 
+const char *
+rgb2hex_c(int r, int g, int b)
+{
+	return bprintf("%x", ((r << 16) + (g << 8) + b));
+}
+
+int
+rgb2hex_n(int r, int g, int b)
+{
+	return ((r << 16) + (g << 8) + b);
+}
+
 int
 greenToRed(int current, int sep, int max)
 {
-	current = 36;
-	int color = (int)((current > sep) ?
-					( ( (RED|GREEN) - ( ((current-sep) * (GREEN/(max-sep))) << 4 )) & ~BLUE & COLOR_MASK ) :
-					( ( GREEN + (( (current * (RED/sep)) << 4 ) & ~BLUE & COLOR_MASK) )));
+	int steps = 10;
+	int cost = 255/steps;
+	int step = current*steps/max;
+	int color_cotol = steps-(sep*steps/max);
 
-	return color;
+	int green = 255;
+	int red = step * cost * color_cotol; //TODO
+	if (red > 255) {
+		red = 255;
+		green = POSITIVE_OR_ZERO(green - step * cost);
+	}
+
+	return rgb2hex_n(red, green, 0);
 }
 
 void
@@ -208,15 +227,15 @@ printBar(char *bar, int x, int y, int w, int h, int barlen, int backlen, const c
 }
 
 void
-printDoubleBar(char *dbar, int x, int y, int w, int h, int sx, int sy, int sw, int sh, int barlen, const char *fir_color, const char *sec_color, const char* bg_color)
+printDoubleBar(char *dbar, int x, int y, int w, int h, int sx, int sy, int sw, int sh, int barlen, const char *fir_color, const char *sec_color, const char* bg_color0, const char* bg_color1)
 {
 	char f[MAX_BAR_LEN], s[MAX_BAR_LEN];
 	printBar(f,
 			x, y, w, h,
-			0, barlen, fir_color, bg_color);
+			0, barlen, fir_color, bg_color0);
 	printBar(s,
 			sx, sy, sw, sh,
-			barlen, barlen, sec_color, bg_color);
+			barlen, barlen, sec_color, bg_color1);
 	
 	esnprintf(dbar, sizeof(f) + sizeof(s),
 			"%s%s", f, s);

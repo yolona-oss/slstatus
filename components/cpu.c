@@ -122,7 +122,7 @@
 						x, y, cw, ch,
 						x, ch+y, tw, th,
 						barlen,
-						cpucol, tempcol, DEFAULT_BG_C);
+						cpucol, tempcol, DEFAULT_BAR_BG_C, DEFAULT_BG_C);
 
 		return bprintf("%s", cpu);
 	}

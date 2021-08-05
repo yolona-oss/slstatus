@@ -156,7 +156,7 @@
 		printBar(mem,
 				x, y, w, h,
 				barlen, DEFAULT_BAR_WIDTH,
-				ramcol, DEFAULT_BG_C);
+				ramcol, DEFAULT_BAR_BG_C);
 
 		return bprintf("%s", mem);
 	}
