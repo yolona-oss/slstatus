@@ -9,8 +9,6 @@ static const char unknown_str[] = "n/a";
 /* maximum output string length */
 #define MAXLEN 2048
 
-	/* "/sys/class/hwmon/hwmon1/temp2_input", "/sys/class/hwmon/hwmon1/temp2_max" }; */
-
 /*
  * function            description                     argument (example)
  *
@@ -68,10 +66,10 @@ static const char unknown_str[] = "n/a";
  *  */  
 static const struct arg args[] = {
 	/* function	format          argument */
-	{ cpu_status2d, 	" %s ",	"/sys/class/hwmon/hwmon2/temp2" },
-	{ ram_status2d,		" %s ",	NULL },
-	{ keymap,			" %s ",	NULL },
+	{ cpu_status2d, 	" %s ",		"/sys/class/hwmon/hwmon5/temp2" },
+	{ ram_status2d,		" %s ",		NULL },
+	{ wifi_status2d,	" %3s ",	"wlan0" },
+	{ keymap,			" %s ",		NULL },
+	{ battery_status2d,	" %s ",		"BAT0" },
 	{ datetime,			"  %s ",	"%H:%M:%S" },
-	/* { wifi_status2d,	" %3s ",	"wlan0" }, */
-	/* { battery_status2d,	" %s ",		"BAT0" }, */
 };

@@ -44,7 +44,7 @@ const char *fmt_human(uintmax_t num, int base);
 int pscanf(const char *path, const char *fmt, ...);
 
 /* status2d */
-int  *ccToInt(const char* ch);
+int ccToInt(const char* ch, int *ret);
 void intToHexColor(int num, char *color);
 int rgb2hex_n(int r, int g, int b);
 const char *rgb2hex_c(int r, int g, int b);

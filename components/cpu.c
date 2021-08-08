@@ -53,20 +53,19 @@
 	const char *
 	cpu_char(void)
 	{	
-		int *perc;
-		perc = NULL;
+		int perc;
 		
-		perc = ccToInt(cpu_perc());
-		if (perc == NULL) {
+		int rc = ccToInt(cpu_perc(), &perc);
+		if (rc != 0) {
 			return NULL;
 		}
 
 		char *ret = NULL;
-		if (*perc < 50) {
+		if (perc < 50) {
 			ret = "low";
-		} else if (*perc >= 50 && *perc < 80) {
+		} else if (perc >= 50 && perc < 80) {
 			ret = "med";
-		} else if (*perc >= 80) {
+		} else if (perc >= 80) {
 			ret = "high";
 		}
 
@@ -77,10 +76,12 @@
 	cpu_status2d(const char *path)
 	{
 		char tpath[PATH_MAX];
-		int *perc;
+		int perc;
 		int crit_temp, cur_temp, hitemp;
 
-		if((perc = ccToInt(cpu_perc())) == NULL) {
+		int rc = ccToInt(cpu_perc(), &perc);
+
+		if(rc != 0) {
 			return NULL;
 		}
 
@@ -108,7 +109,7 @@
 		y = INDENT_HEIGHT;
 		th = CENTRED / 4;
 		ch = CENTRED - th;
-		cw = barlen * *perc / 100;
+		cw = barlen * perc / 100;
 		tw = barlen * cur_temp / crit_temp;
 
 		char cpucol[7] = DEFAULT_FG_C;

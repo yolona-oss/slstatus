@@ -120,12 +120,12 @@
 	const char *
 	battery_status2d(const char *bat)
 	{
-		int *perc, *charging;
+		int perc, charging;
 		
-		perc     = ccToInt(battery_perc(bat));
-		charging = ccToInt(battery_state("AC0"));
+		int rcb = ccToInt(battery_perc(bat), &perc);
+		int rca = ccToInt(battery_state("AC0"), &charging);
 
-		if (perc == NULL || charging == NULL) {
+		if (rcb != 0 || rca != 0) {
 			return NULL;
 		}
 
@@ -156,16 +156,16 @@
 		/* charge */
 		cw = bw - 4;
 		/* discagre */
-		dw = (bw - 4) * (100-*perc) / 100;
+		dw = (bw - 4) * (100-perc) / 100;
 
 		char charge_color[7];
-		char board_color[7]     = DEFAULT_FG_C; /* intToHexColor(DEFAULT_FG, board_color); */
+		char board_color[7]     = DEFAULT_BBG_C; /* intToHexColor(DEFAULT_FG, board_color); */
 		char discharge_color[7] = DEFAULT_BG_C; /* intToHexColor(DEFAULT_BG, discharge_color); */
 
-		if (*charging > 0) {
+		if (charging > 0) {
 			intToHexColor(DEFAULT_FG, charge_color);
 		} else {
-			intToHexColor(greenToRed((100 - *perc), 60, 100), charge_color);
+			intToHexColor(greenToRed((100 - perc), 60, 100), charge_color);
 		}
 
 		char nose[MAX_BAR_LEN], body[MAX_BAR_LEN], fill[MAX_BAR_LEN], all[MAX_BAR_LEN * 3];

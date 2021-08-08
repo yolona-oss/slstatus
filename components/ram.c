@@ -134,10 +134,11 @@
 	{
 		/* uintmax_t total, free, buffers, cached; */
 		uintmax_t stotal, sfree, scached;
-		int *ram, swap;
+		int ram, swap;
 
 		/* getting ram usage info */
-		if ((ram = ccToInt(ram_perc())) == NULL) {
+		int rc = ccToInt(ram_perc(), &ram);
+		if (rc != 0) {
 			return NULL;
 		}
 
@@ -148,7 +149,7 @@
 		x = INDENT_WIDTH;
 		y = INDENT_HEIGHT;
 		h = CENTRED;
-		w = barlen * *ram / 100;
+		w = barlen * ram / 100;
 
 		char ramcol[7]  = DEFAULT_FG_C;
 

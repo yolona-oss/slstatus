@@ -146,28 +146,26 @@ pscanf(const char *path, const char *fmt, ...)
 }
 
 /* status2d */
-int *
-ccToInt(const char* ch)
+int
+ccToInt(const char* ch, int *ret)
 {
 	if (ch == NULL) {
-		return NULL;
+		return 1;
 	}
 
 	char swap[100];
-	int *num = NULL;
-	num = (int *)malloc(sizeof(int *));
 
 	if (esnprintf(swap, sizeof(swap),
 		   	"%s", ch) == 0) {
-		return NULL;
+		return 1;
 	}
 
 	if (sscanf(swap, "%d",
-		   	num) == 0) {
-		return NULL;
+		   	ret) == 0) {
+		return 1;
 	}
 
-	return num;
+	return 0;
 }
 
 void

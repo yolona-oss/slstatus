@@ -18,33 +18,6 @@
 	#include <linux/wireless.h>
 
 	const char *
-	wifi_conn(const char *interface)
-	{
-		int conn_status;
-		char path[PATH_MAX];
-		FILE *fp;
-		char *p;
-		char status[5];
-
-		conn_status = esnprintf(path, sizeof(path), "/sys/class/net/%s/operstate", interface);
-
-		if (!(fp = fopen(path, "r"))) {
-			warn("fopen '%s':", path);
-			return bprintf("OFF");
-		}
-		p = fgets(status, 5, fp);
-		fclose(fp);
-		if (!p || strcmp(status, "up\n") != 0) {
-			return bprintf("OFF");
-		}
-
-		if(conn_status > 0)
-			return bprintf("");
-		else
-			return bprintf("D");
-	}
-
-	const char *
 	wifi_perc(const char *interface)
 	{
 		int cur;
@@ -126,65 +99,6 @@
 		}
 
 		return id;
-	}
-		
-	const char *
-	wifi_status2d(const char *interface)
-	{
-		int perc = 0;
-
-		const char *perc_c = wifi_perc(interface);
-		if (perc_c == NULL)
-			printf("null\n");
-		else
-			printf("%s\n", perc_c);
-		int rc = ccToInt(perc_c, &perc);
-		if (rc != 0) {
-			goto drawDicon;
-		}
-
-		int offset, x, y, w, barh, lh, mh, hh;
-		x  = INDENT_WIDTH;
-		w  = 3;
-		lh = CENTRED / 3;
-		y  = MAX_HEIGHT - INDENT_HEIGHT;
-		mh = lh * 2;
-		hh = lh * 3;
-		barh = CENTRED;
-		offset = 2 + w;
-
-		char fg[7] = DEFAULT_FG_C; // intToHexColor(DEFAULT_FG, fg);
-
-		char low[MAX_BAR_LEN], med[MAX_BAR_LEN], hig[MAX_BAR_LEN], all[MAX_BAR_LEN * 3];
-		low[0] = med[0] = hig[0] = '\0';
-
-		if (perc > 75) {
-			printBar(low,
-					x, y-lh, w, lh, offset, lh, fg, DEFAULT_BG_C);
-			printBar(med,
-					x, y-mh, w, mh, offset, mh, fg, DEFAULT_BG_C);
-			printBar(hig,
-					x, y-hh, w, hh, offset, hh, fg, DEFAULT_BG_C);
-		} else if (perc <= 75 && perc > 25) {
-			printBar(low,
-					x, y-lh, w, lh, offset, lh, fg, DEFAULT_BG_C);
-			printBar(med,
-					x, y-mh, w, mh, offset*2, mh, fg, DEFAULT_BG_C);
-
-		} else if (perc <= 25) {
-			printBar(low,
-					x, y-lh, w, lh, offset*3, lh, fg, DEFAULT_BG_C);
-		} else {
-			return NULL;
-		}
-
-		snprintf(all, sizeof(all),
-				"%s%s%s", low, med, hig);
-
-		return bprintf("%s", all);
-drawDicon:
-		/* return bprintf("^c#FF0000^D^d^"); */
-		return wifi_conn(interface);
 	}
 #elif defined(__OpenBSD__)
 	#include <net/if.h>
