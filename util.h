@@ -18,8 +18,8 @@
 #define SPEC_COLOR_C  "8a809b"
 #define DEFAULT_BAR_BG_C "444444"
 
-#define MAX_HEIGHT    19
-#define INDENT_HEIGHT 4
+#define MAX_HEIGHT    16
+#define INDENT_HEIGHT 3
 #define INDENT_WIDTH  2
 
 #define CENTRED (MAX_HEIGHT - (INDENT_HEIGHT * 2))

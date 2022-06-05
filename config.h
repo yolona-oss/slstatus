@@ -64,12 +64,10 @@ static const char unknown_str[] = "n/a";
  */
 /*  
  *  */  
+//
 static const struct arg args[] = {
-	/* function	format          argument */
-	{ cpu_status2d, 	" %s ",		"/sys/class/hwmon/hwmon5/temp2" },
-	{ ram_status2d,		" %s ",		NULL },
-	{ wifi_status2d,	" %3s ",	"wlan0" },
-	{ keymap,			" %s ",		NULL },
-	{ battery_status2d,	" %s ",		"BAT0" },
-	{ datetime,			"  %s ",	"%H:%M:%S" },
+	{ cpu_status2d, 1, "%s", "/sys/class/hwmon/hwmon2/temp2" },
+	{ ram_status2d, 2, "%s", NULL },
+	{ keymap,       0, "%s", NULL },
+	{ datetime,     7, "%s", "%H:%M:%S" },
 };

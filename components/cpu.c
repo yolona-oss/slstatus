@@ -107,7 +107,7 @@
 		barlen = DEFAULT_BAR_WIDTH;
 		x = INDENT_WIDTH;
 		y = INDENT_HEIGHT;
-		th = CENTRED / 4;
+		th = CENTRED / 5;
 		ch = CENTRED - th;
 		cw = barlen * perc / 100;
 		tw = barlen * cur_temp / crit_temp;

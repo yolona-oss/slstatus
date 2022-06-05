@@ -13,6 +13,7 @@
 
 struct arg {
 	const char *(*func)();
+	const int barn;
 	const char *fmt;
 	const char *args;
 };
@@ -51,31 +52,19 @@ main(int argc, char *argv[])
 	struct sigaction act;
 	struct timespec start, current, diff, intspec, wait;
 	size_t i, len;
-	int sflag, ret;
+	int ret;
 	char status[MAXLEN];
+	char run[MAXLEN+35];
 	const char *res;
-
-	sflag = 0;
-	ARGBEGIN {
-		case 's':
-			sflag = 1;
-			break;
-		default:
-			usage();
-	} ARGEND
-
-	if (argc) {
-		usage();
-	}
 
 	memset(&act, 0, sizeof(act));
 	act.sa_handler = terminate;
 	sigaction(SIGINT,  &act, NULL);
 	sigaction(SIGTERM, &act, NULL);
 
-	if (!sflag && !(dpy = XOpenDisplay(NULL))) {
-		die("XOpenDisplay: Failed to open display");
-	}
+	/* if (!(dpy = XOpenDisplay(NULL))) { */
+	/* 	die("XOpenDisplay: Failed to open display"); */
+	/* } */
 
 	while (!done) {
 		if (clock_gettime(CLOCK_MONOTONIC, &start) < 0) {
@@ -87,26 +76,14 @@ main(int argc, char *argv[])
 			if (!(res = args[i].func(args[i].args))) {
 				res = unknown_str;
 			}
-			if ((ret = esnprintf(status + len, sizeof(status) - len,
-			                    args[i].fmt, res)) < 0) {
-				break;
-			}
-			len += ret;
+			esnprintf(status, sizeof(status),
+						args[i].fmt, res);
+			esnprintf(run, sizeof(run),
+						"duskc run_command setstatus %d \"%s\"", args[i].barn, status);
+			printf("%s\n", run);
+			system(run);
 		}
 
-		if (sflag) {
-			puts(status);
-			fflush(stdout);
-			if (ferror(stdout))
-				die("puts:");
-		} else {
-			if (XStoreName(dpy, DefaultRootWindow(dpy), status)
-                            < 0) {
-				die("XStoreName: Allocation failed");
-			}
-			XFlush(dpy);
-		}
-		
 		if (!done) {
 			if (clock_gettime(CLOCK_MONOTONIC, &current) < 0) {
 				die("clock_gettime:");
@@ -126,12 +103,10 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (!sflag) {
-		XStoreName(dpy, DefaultRootWindow(dpy), NULL);
-		if (XCloseDisplay(dpy) < 0) {
-			die("XCloseDisplay: Failed to close display");
-		}
-	}
+	/* XStoreName(dpy, DefaultRootWindow(dpy), NULL); */
+	/* if (XCloseDisplay(dpy) < 0) { */
+	/* 	die("XCloseDisplay: Failed to close display"); */
+	/* } */
 
 	return 0;
 }
