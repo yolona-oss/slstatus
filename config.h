@@ -1,13 +1,10 @@
 /* See LICENSE file for copyright and license details. */
 
-/* interval between updates (in ms) */
-const unsigned int interval = 500;
-
+/* interval between updates (in ms) */ const unsigned int interval = 500;
 /* text to show if no value can be retrieved */
 static const char unknown_str[] = "n/a";
 
-/* maximum output string length */
-#define MAXLEN 2048
+/* maximum output string length */ #define MAXLEN 2048
 
 /*
  * function            description                     argument (example)
@@ -65,9 +62,21 @@ static const char unknown_str[] = "n/a";
 /*  
  *  */  
 //
+
+#define transparent "#1e222a"
+#define black "#2E3440"
+#define green "#A3BE8C"
+#define white "#D8DEE9"
+#define grey "#373d49"
+#define blue "#81A1C1"
+#define red "#BF616A"
+#define darkblue "#7292b2"
+
 static const struct arg args[] = {
-	{ cpu_status2d, 1, "%s", "/sys/class/hwmon/hwmon2/temp2" },
-	{ ram_status2d, 2, "%s", NULL },
-	{ keymap,       0, "%s", NULL },
-	{ datetime,     7, "%s", "%H:%M:%S" },
+    /*{ run_command,   0, "^c" green "^  Fully Updated ",                                    "" },*/
+    { cpu_status2d,  2, "%s",                                                             "/sys/class/hwmon/hwmon1/temp1" },
+    { ram_status2d,  1, "%s",                                                             NULL },
+    /*{ wifi_status2d, 0, "^b" transparent "^ %s ",                                           "wlan0" },*/
+    { keymap,        0, "%s",                               NULL },
+    { datetime,      7, "%s", "%H:%M:%S" },
 };

@@ -1,9 +1,10 @@
 /* See LICENSE file for copyright and license details. */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../util.h"
-/* #include "../slstatus.h" */
+#include "../slstatus.h"
 
 #if defined(__linux__)
 	#include <stdint.h>
@@ -141,167 +142,176 @@
 		if (rc != 0) {
 			return NULL;
 		}
+		rc = ccToInt(swap_perc(), &swap);
+		if (rc != 0) {
+                        swap = 0;
+		}
 
-		int barlen;
-		int x, y, w, h;
+                int barlen;
+		int x, y, rw, sw, rh, sh;
 
 		barlen = DEFAULT_BAR_WIDTH;
 		x = INDENT_WIDTH;
-		y = INDENT_HEIGHT;
-		h = CENTRED;
-		w = barlen * ram / 100;
+                y = INDENT_HEIGHT;
+                sh = CENTRED / 5;
+                rh = CENTRED - sh;
+                rw = barlen * ram / 100;
+                sw = barlen * swap / 100;
 
-		char ramcol[7]  = DEFAULT_FG_C;
+                char ramcol[7] = DEFAULT_FG_C;
+                char swapcol[7] = "1177aa";
 
-		char mem[MAX_BAR_LEN * 2];
-		printBar(mem,
-				x, y, w, h,
-				barlen, DEFAULT_BAR_WIDTH,
-				ramcol, DEFAULT_BAR_BG_C);
+                char mem[MAX_BAR_LEN * 2];
 
-		return bprintf("%s", mem);
-	}
+                printDoubleBar(mem,
+                                x, y, rw, rh,
+                                x, rh+y, sw, sh,
+                                barlen,
+                                ramcol, swapcol, DEFAULT_BAR_BG_C, DEFAULT_BAR_BG_C);
+
+                return bprintf("%s", mem);
+        }
 #elif defined(__OpenBSD__)
-	#include <stdlib.h>
-	#include <sys/sysctl.h>
-	#include <sys/types.h>
-	#include <unistd.h>
+#include <stdlib.h>
+#include <sys/sysctl.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-	#define LOG1024 10
-	#define pagetok(size, pageshift) (size_t)(size << (pageshift - LOG1024))
+#define LOG1024 10
+#define pagetok(size, pageshift) (size_t)(size << (pageshift - LOG1024))
 
-	inline int
-	load_uvmexp(struct uvmexp *uvmexp)
-	{
-		int uvmexp_mib[] = {CTL_VM, VM_UVMEXP};
-		size_t size;
+        inline int
+load_uvmexp(struct uvmexp *uvmexp)
+{
+        int uvmexp_mib[] = {CTL_VM, VM_UVMEXP};
+        size_t size;
 
-		size = sizeof(*uvmexp);
+        size = sizeof(*uvmexp);
 
-		if (sysctl(uvmexp_mib, 2, uvmexp, &size, NULL, 0) >= 0) {
-			return 1;
-		}
+        if (sysctl(uvmexp_mib, 2, uvmexp, &size, NULL, 0) >= 0) {
+                return 1;
+        }
 
-		return 0;
-	}
+        return 0;
+}
 
-	const char *
-	ram_free(void)
-	{
-		struct uvmexp uvmexp;
-		int free_pages;
+        const char *
+ram_free(void)
+{
+        struct uvmexp uvmexp;
+        int free_pages;
 
-		if (load_uvmexp(&uvmexp)) {
-			free_pages = uvmexp.npages - uvmexp.active;
-			return fmt_human(pagetok(free_pages, uvmexp.pageshift) *
-			                 1024, 1024);
-		}
+        if (load_uvmexp(&uvmexp)) {
+                free_pages = uvmexp.npages - uvmexp.active;
+                return fmt_human(pagetok(free_pages, uvmexp.pageshift) *
+                                1024, 1024);
+        }
 
-		return NULL;
-	}
+        return NULL;
+}
 
-	const char *
-	ram_perc(void)
-	{
-		struct uvmexp uvmexp;
-		int percent;
+        const char *
+ram_perc(void)
+{
+        struct uvmexp uvmexp;
+        int percent;
 
-		if (load_uvmexp(&uvmexp)) {
-			percent = uvmexp.active * 100 / uvmexp.npages;
-			return bprintf("%d", percent);
-		}
+        if (load_uvmexp(&uvmexp)) {
+                percent = uvmexp.active * 100 / uvmexp.npages;
+                return bprintf("%d", percent);
+        }
 
-		return NULL;
-	}
+        return NULL;
+}
 
-	const char *
-	ram_total(void)
-	{
-		struct uvmexp uvmexp;
+        const char *
+ram_total(void)
+{
+        struct uvmexp uvmexp;
 
-		if (load_uvmexp(&uvmexp)) {
-			return fmt_human(pagetok(uvmexp.npages,
-			                         uvmexp.pageshift) * 1024,
-			                 1024);
-		}
+        if (load_uvmexp(&uvmexp)) {
+                return fmt_human(pagetok(uvmexp.npages,
+                                        uvmexp.pageshift) * 1024,
+                                1024);
+        }
 
-		return NULL;
-	}
+        return NULL;
+}
 
-	const char *
-	ram_used(void)
-	{
-		struct uvmexp uvmexp;
+        const char *
+ram_used(void)
+{
+        struct uvmexp uvmexp;
 
-		if (load_uvmexp(&uvmexp)) {
-			return fmt_human(pagetok(uvmexp.active,
-			                         uvmexp.pageshift) * 1024,
-			                 1024);
-		}
+        if (load_uvmexp(&uvmexp)) {
+                return fmt_human(pagetok(uvmexp.active,
+                                        uvmexp.pageshift) * 1024,
+                                1024);
+        }
 
-		return NULL;
-	}
+        return NULL;
+}
 #elif defined(__FreeBSD__)
-	#include <sys/sysctl.h>
-	#include <sys/vmmeter.h>
-	#include <unistd.h>
-	#include <vm/vm_param.h>
+#include <sys/sysctl.h>
+#include <sys/vmmeter.h>
+#include <unistd.h>
+#include <vm/vm_param.h>
 
-	const char *
-	ram_free(void) {
-		struct vmtotal vm_stats;
-		int mib[] = {CTL_VM, VM_TOTAL};
-		size_t len;
+const char *
+ram_free(void) {
+        struct vmtotal vm_stats;
+        int mib[] = {CTL_VM, VM_TOTAL};
+        size_t len;
 
-		len = sizeof(struct vmtotal);
-		if (sysctl(mib, 2, &vm_stats, &len, NULL, 0) == -1
-				|| !len)
-			return NULL;
+        len = sizeof(struct vmtotal);
+        if (sysctl(mib, 2, &vm_stats, &len, NULL, 0) == -1
+                        || !len)
+                return NULL;
 
-		return fmt_human(vm_stats.t_free * getpagesize(), 1024);
-	}
+        return fmt_human(vm_stats.t_free * getpagesize(), 1024);
+}
 
-	const char *
-	ram_total(void) {
-		long npages;
-		size_t len;
+const char *
+ram_total(void) {
+        long npages;
+        size_t len;
 
-		len = sizeof(npages);
-		if (sysctlbyname("vm.stats.vm.v_page_count", &npages, &len, NULL, 0) == -1
-				|| !len)
-			return NULL;
+        len = sizeof(npages);
+        if (sysctlbyname("vm.stats.vm.v_page_count", &npages, &len, NULL, 0) == -1
+                        || !len)
+                return NULL;
 
-		return fmt_human(npages * getpagesize(), 1024);
-	}
+        return fmt_human(npages * getpagesize(), 1024);
+}
 
-	const char *
-	ram_perc(void) {
-		long npages;
-		long active;
-		size_t len;
+const char *
+ram_perc(void) {
+        long npages;
+        long active;
+        size_t len;
 
-		len = sizeof(npages);
-		if (sysctlbyname("vm.stats.vm.v_page_count", &npages, &len, NULL, 0) == -1
-				|| !len)
-			return NULL;
+        len = sizeof(npages);
+        if (sysctlbyname("vm.stats.vm.v_page_count", &npages, &len, NULL, 0) == -1
+                        || !len)
+                return NULL;
 
-		if (sysctlbyname("vm.stats.vm.v_active_count", &active, &len, NULL, 0) == -1
-				|| !len)
-			return NULL;
+        if (sysctlbyname("vm.stats.vm.v_active_count", &active, &len, NULL, 0) == -1
+                        || !len)
+                return NULL;
 
-		return bprintf("%d", active * 100 / npages);
-	}
+        return bprintf("%d", active * 100 / npages);
+}
 
-	const char *
-	ram_used(void) {
-		long active;
-		size_t len;
+const char *
+ram_used(void) {
+        long active;
+        size_t len;
 
-		len = sizeof(active);
-		if (sysctlbyname("vm.stats.vm.v_active_count", &active, &len, NULL, 0) == -1
-				|| !len)
-			return NULL;
+        len = sizeof(active);
+        if (sysctlbyname("vm.stats.vm.v_active_count", &active, &len, NULL, 0) == -1
+                        || !len)
+                return NULL;
 
-		return fmt_human(active * getpagesize(), 1024);
-	}
+        return fmt_human(active * getpagesize(), 1024);
+}
 #endif

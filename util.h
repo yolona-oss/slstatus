@@ -12,20 +12,23 @@
 #define DEFAULT_BG_C  "222222"
 #define DEFAULT_FG    1144746
 #define DEFAULT_FG_C  "1177aa"
-#define DEFAULT_BBG   12369084
-#define DEFAULT_BBG_C "bcbcbc"
+#define DEFAULT_BBG   12369084 // 12369084
+#define DEFAULT_BBG_C "bcbcbc" // "bcbcbc"
 #define SPEC_COLOR    9076891
 #define SPEC_COLOR_C  "8a809b"
 #define DEFAULT_BAR_BG_C "444444"
 
-#define MAX_HEIGHT    16
-#define INDENT_HEIGHT 3
+#define MAX_HEIGHT    21
+#define INDENT_HEIGHT 4
 #define INDENT_WIDTH  2
+// #define INDENT_HEIGHT 3
+// #define INDENT_WIDTH  2
 
 #define CENTRED (MAX_HEIGHT - (INDENT_HEIGHT * 2))
-#define DEFAULT_BAR_WIDTH 50
+#define DEFAULT_BAR_WIDTH 70
 
-#define MAX_BAR_LEN   74
+#define MAX_BAR_LEN   84
+
 
 extern char buf[1024];
 
